@@ -1,6 +1,5 @@
 package com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,16 +39,23 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alejandroarcas.reminder_manager.reminder.domain.mapper.toPresentation
 import com.alejandroarcas.reminder_manager.reminder.domain.model.Reminder
+import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.components.AddReminderBottomSheet
 import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.model.ReminderListUiState
 
 @Composable
-fun ReminderListScreen(listViewModel: ListViewModel, navigateToDetail: (Int) -> Unit) {
+fun ReminderListScreen(listViewModel: ListViewModel, addViewModel: AddViewModel, navigateToDetail: (Int) -> Unit) {
 
-    val uiState = listViewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by listViewModel.uiState.collectAsStateWithLifecycle()
 
-    when (val state = uiState.value) {
+    val showBottomSheet by addViewModel.showBottomSheet.collectAsStateWithLifecycle()
+
+    if (showBottomSheet){
+        AddReminderBottomSheet(addViewModel, listViewModel)
+    }
+
+    when (val state = uiState) {
         is ReminderListUiState.LOADING -> ListLoading()
-        is ReminderListUiState.SUCCESS -> ListSuccess(state.list, navigateToDetail)
+        is ReminderListUiState.SUCCESS -> ListSuccess(state.list, addViewModel, navigateToDetail)
         is ReminderListUiState.EMPTY -> ListEmpty()
     }
 }
@@ -68,7 +75,7 @@ fun ListEmpty() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListSuccess(reminderList: List<Reminder>, navigateToDetail: (Int) -> Unit) {
+fun ListSuccess(reminderList: List<Reminder>, addViewModel: AddViewModel, navigateToDetail: (Int) -> Unit) {
 
     val listOfItemColors = listOf(Color(0xFF5fb995), Color(0xFF5fb8b9), Color(0xFF5f85b9))
 
@@ -81,7 +88,8 @@ fun ListSuccess(reminderList: List<Reminder>, navigateToDetail: (Int) -> Unit) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // TODO: Navigate to add screen
+                    addViewModel.showBottomSheet(true)
+                    addViewModel.resetBottomSheetValues()
                 },
                 shape = CircleShape,
                 modifier = Modifier.size(80.dp),

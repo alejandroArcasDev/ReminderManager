@@ -7,6 +7,3 @@ object ListScreen
 
 @Serializable
 data class DetailScreen(val id: Int)
-
-@Serializable
-object AddScreen

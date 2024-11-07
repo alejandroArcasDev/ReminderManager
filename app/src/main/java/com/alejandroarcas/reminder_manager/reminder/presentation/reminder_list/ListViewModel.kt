@@ -24,22 +24,10 @@ class ListViewModel @Inject constructor(
         loadReminderList()
     }
 
-    private fun loadReminderList() {
+    fun loadReminderList() {
         _uiState.value = ReminderListUiState.LOADING
         viewModelScope.launch {
-            val reminders = listOf(
-                Reminder(1, "Reminder", Interval.ONCE),
-                Reminder(2, "Reminder 2", Interval.DAILY),
-                Reminder(3, "Reminder 3", Interval.DAILY),
-                Reminder(4, "Reminder 4", Interval.DAILY),
-                Reminder(5, "Reminder 5", Interval.DAILY),
-                Reminder(6, "Reminder 6", Interval.DAILY),
-                Reminder(7, "Reminder 7", Interval.DAILY),
-                Reminder(8, "Reminder 8", Interval.DAILY),
-                Reminder(9, "Reminder 9", Interval.DAILY),
-                Reminder(10, "Reminder 10", Interval.DAILY),
-            )
-
+            val reminders = getAllRemindersUseCase()
             if (reminders.isEmpty()) {
                 _uiState.value = ReminderListUiState.EMPTY
             } else {
@@ -47,6 +35,4 @@ class ListViewModel @Inject constructor(
             }
         }
     }
-
-
 }
