@@ -31,7 +31,9 @@ fun NavigationWrapper() {
         }
         composable<DetailScreen> { backStackEntry ->
             val reminderId = backStackEntry.toRoute<DetailScreen>().id
-            ReminderDetailScreen(reminderId)
+            ReminderDetailScreen(reminderId) {
+                navController.popBackStack()
+            }
         }
     }
 }

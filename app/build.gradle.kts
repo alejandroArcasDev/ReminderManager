@@ -73,7 +73,8 @@ dependencies {
 
     // Navigation
     implementation(libs.typesafe.navigation.compose)
-    implementation(libs.kotlinx.serializationjson)
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
 
     // Room
     implementation(libs.androidx.room.ktx)
@@ -96,4 +97,6 @@ dependencies {
 
     // Work Manager
     implementation(libs.workmanager.compose)
+
+
 }

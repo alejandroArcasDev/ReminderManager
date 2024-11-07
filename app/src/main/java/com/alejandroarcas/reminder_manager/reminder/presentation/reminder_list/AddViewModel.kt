@@ -25,7 +25,7 @@ class AddViewModel @Inject constructor(
 
     fun addReminder(title: String, interval: Interval) {
         viewModelScope.launch {
-            addReminderUseCase(title = title, interval = interval)
+            addReminderUseCase(id= 0, title = title, interval = interval)
         }
     }
 

@@ -8,6 +8,7 @@ class UpsertReminder (
     private val reminderRepository: ReminderRepository
 ) {
     suspend operator fun invoke(
+        id: Int,
         title: String,
         interval: Interval
     ): Boolean {
@@ -17,6 +18,7 @@ class UpsertReminder (
         }
 
         val reminder = Reminder(
+            id = id,
             title = title,
             interval = interval
         )
