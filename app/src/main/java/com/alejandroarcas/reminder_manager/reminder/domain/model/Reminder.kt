@@ -9,3 +9,4 @@ data class Reminder(
 enum class Interval {
     ONCE, DAILY
 }
+
