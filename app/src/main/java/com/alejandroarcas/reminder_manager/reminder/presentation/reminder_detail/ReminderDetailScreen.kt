@@ -1,5 +1,6 @@
 package com.alejandroarcas.reminder_manager.reminder.presentation.reminder_detail
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alejandroarcas.reminder_manager.reminder.domain.model.Interval
 import com.alejandroarcas.reminder_manager.reminder.presentation.components.CustomTopAppBar
+import com.alejandroarcas.reminder_manager.reminder.presentation.components.DateTimePicker
 import kotlinx.coroutines.flow.collectLatest
 import java.util.Locale
 
@@ -55,7 +57,6 @@ import java.util.Locale
 fun ReminderDetailScreen(id: Int, navigateBack: () -> Unit) {
 
     val detailViewModel = hiltViewModel<ReminderDetailViewModel>()
-
 
     val reminderDetailState by detailViewModel.reminderDetailState.collectAsStateWithLifecycle()
     val reminder by detailViewModel.reminder.collectAsStateWithLifecycle()
@@ -79,23 +80,6 @@ fun ReminderDetailScreen(id: Int, navigateBack: () -> Unit) {
                 Toast.makeText(
                     context,
                     "Error updating reminder",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-        // Reminder Deleted, go back
-        detailViewModel.reminderDeletedChannel.collectLatest { deleted ->
-            if (deleted) {
-                navigateBack()
-                Toast.makeText(
-                    context,
-                    "Reminder deleted",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                Toast.makeText(
-                    context,
-                    "Error deleting reminder",
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -169,14 +153,15 @@ fun ReminderDetailScreen(id: Int, navigateBack: () -> Unit) {
 
                 // Date
                 Row(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-                    Icon(Icons.Rounded.DateRange, contentDescription = "Date")
-                    Spacer(Modifier.width(5.dp))
-                    Text("21/11/2024    2:30 pm")
+                    DateTimePicker(
+                        onDateTimeSelected = { dateTime ->
+                            Log.d("DateTimePicker", "Fecha y hora seleccionada: $dateTime")
+                        }
+                    )
                 }
 
                 // Interval
                 Row(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-
                     ExposedDropdownMenuBox(
                         expanded = reminderDetailState.isDropdownExpanded,
                         onExpandedChange = { detailViewModel.toggleDropdown() }) {
@@ -270,6 +255,7 @@ fun ReminderDetailScreen(id: Int, navigateBack: () -> Unit) {
                             detailViewModel.onAction(
                                 ReminderDetailActions.DeleteReminder(reminder!!)
                             )
+                            navigateBack()
                         }) {
                         Text(text = "Delete", color = Color.White)
                         Spacer(modifier = Modifier.width(4.dp))
