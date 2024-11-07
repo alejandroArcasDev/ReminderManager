@@ -18,6 +18,10 @@ class ReminderRepositoryImpl(db: ReminderDB): ReminderRepository {
         return reminderDao.getAllReminders().map { it.toReminder() }
     }
 
+    override suspend fun getReminderById(id: Int): Reminder {
+        return reminderDao.getReminderById(id).toReminder()
+    }
+
     override suspend fun deleteReminder(reminder: Reminder) {
         return reminderDao.deleteReminder(reminder.toReminderEntity())
     }
