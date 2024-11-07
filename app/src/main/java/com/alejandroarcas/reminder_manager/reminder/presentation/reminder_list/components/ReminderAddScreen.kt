@@ -18,6 +18,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,10 +36,13 @@ import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.L
 fun AddReminderBottomSheet(addViewModel: AddViewModel, listViewModel: ListViewModel) {
     val title by addViewModel.title.collectAsStateWithLifecycle()
 
+    val sheetState = rememberModalBottomSheetState()
+
     val onceChip by addViewModel.onceChip.collectAsStateWithLifecycle()
     val dailyChip by addViewModel.dailyChip.collectAsStateWithLifecycle()
 
     ModalBottomSheet(
+        sheetState = sheetState,
         onDismissRequest = {
             addViewModel.showBottomSheet(false)
         },
@@ -125,7 +129,6 @@ fun AddReminderBottomSheet(addViewModel: AddViewModel, listViewModel: ListViewMo
                 ),
                 onClick = {
                     addViewModel.addReminder(title, addViewModel.chipValueToUseCase())
-                    listViewModel.loadReminderList()
                     addViewModel.showBottomSheet(false)
                 }
             ) { Text("Add reminder", color = Color.White, fontSize = 16.sp) }

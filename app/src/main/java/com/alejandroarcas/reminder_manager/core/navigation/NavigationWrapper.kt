@@ -9,6 +9,7 @@ import androidx.navigation.toRoute
 import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.AddViewModel
 
 import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_detail.ReminderDetailScreen
+import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_detail.ReminderDetailViewModel
 import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.ListViewModel
 import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.ReminderListScreen
 
@@ -16,14 +17,18 @@ import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.R
 fun NavigationWrapper() {
     val navController = rememberNavController()
 
+    val listViewModel: ListViewModel = hiltViewModel()
+    val addViewModel: AddViewModel = hiltViewModel()
+    val detailViewModel: ReminderDetailViewModel = hiltViewModel()
+
     NavHost(navController = navController, startDestination = ListScreen) {
         composable<ListScreen> {
-            val listViewModel: ListViewModel = hiltViewModel()
-            val addViewModel: AddViewModel = hiltViewModel()
+
 
             ReminderListScreen(
                 listViewModel,
                 addViewModel,
+                detailViewModel,
                 navigateToDetail = { reminderId ->
                     navController.navigate(DetailScreen(reminderId))
                 }
@@ -31,7 +36,7 @@ fun NavigationWrapper() {
         }
         composable<DetailScreen> { backStackEntry ->
             val reminderId = backStackEntry.toRoute<DetailScreen>().id
-            ReminderDetailScreen(reminderId) {
+            ReminderDetailScreen(reminderId,detailViewModel) {
                 navController.popBackStack()
             }
         }

@@ -43,7 +43,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alejandroarcas.reminder_manager.reminder.domain.model.Interval
 import com.alejandroarcas.reminder_manager.reminder.presentation.components.CustomTopAppBar
@@ -53,14 +52,10 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReminderDetailScreen(id: Int, navigateBack: () -> Unit) {
-
-    val detailViewModel = hiltViewModel<ReminderDetailViewModel>()
+fun ReminderDetailScreen(id: Int, detailViewModel: ReminderDetailViewModel, navigateBack: () -> Unit) {
 
     val reminderDetailState by detailViewModel.reminderDetailState.collectAsStateWithLifecycle()
     val reminder by detailViewModel.reminder.collectAsStateWithLifecycle()
-
-
 
     val context = LocalContext.current
 

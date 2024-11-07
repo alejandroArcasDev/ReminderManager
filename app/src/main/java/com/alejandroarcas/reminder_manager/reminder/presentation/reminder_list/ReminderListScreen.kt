@@ -1,5 +1,6 @@
 package com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +29,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,18 +43,38 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alejandroarcas.reminder_manager.reminder.domain.mapper.toPresentation
 import com.alejandroarcas.reminder_manager.reminder.domain.model.Reminder
+import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_detail.ReminderDetailActions
+import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_detail.ReminderDetailViewModel
 import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.components.AddReminderBottomSheet
 import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.model.ReminderListUiState
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-fun ReminderListScreen(listViewModel: ListViewModel, addViewModel: AddViewModel, navigateToDetail: (Int) -> Unit) {
+fun ReminderListScreen(listViewModel: ListViewModel, addViewModel: AddViewModel, detailViewModel: ReminderDetailViewModel, navigateToDetail: (Int) -> Unit) {
 
     val uiState by listViewModel.uiState.collectAsStateWithLifecycle()
 
     val showBottomSheet by addViewModel.showBottomSheet.collectAsStateWithLifecycle()
 
+
     if (showBottomSheet){
         AddReminderBottomSheet(addViewModel, listViewModel)
+    }
+
+    LaunchedEffect(true) {
+        listViewModel.loadReminderList()
+
+        addViewModel.reminderAddedChannel.collectLatest { added ->
+            if (added) {
+                listViewModel.loadReminderList()
+            }
+        }
+
+        detailViewModel.reminderSavedChannel.collectLatest { updated ->
+            if (updated) {
+                listViewModel.loadReminderList()
+            }
+        }
     }
 
     when (val state = uiState) {
@@ -62,15 +86,19 @@ fun ReminderListScreen(listViewModel: ListViewModel, addViewModel: AddViewModel,
 
 @Composable
 fun ListEmpty() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(Icons.Rounded.List, contentDescription = "Empty")
-        Text("No reminders yet")
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(Icons.Rounded.List, contentDescription = "Empty")
+            Text("No reminders yet")
+        }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -156,13 +184,17 @@ fun ReminderItem(reminder: Reminder, randomColor: Color, navigateToDetail: (Int)
 
 @Composable
 fun ListLoading() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        CircularProgressIndicator()
-        Text("Loading...")
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator()
+            Spacer(Modifier.height(5.dp))
+            Text("Loading...")
+        }
     }
 }
