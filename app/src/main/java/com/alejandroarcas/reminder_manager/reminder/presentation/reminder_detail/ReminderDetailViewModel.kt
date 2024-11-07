@@ -66,6 +66,7 @@ class ReminderDetailViewModel@Inject constructor(
                 _reminderDetailUiState.update {
                     it.copy(interval = action.interval)
                 }
+
             }
 
             is ReminderDetailActions.UpdateReminder -> {

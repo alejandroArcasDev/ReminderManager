@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -60,6 +59,8 @@ fun ReminderDetailScreen(id: Int, navigateBack: () -> Unit) {
 
     val reminderDetailState by detailViewModel.reminderDetailState.collectAsStateWithLifecycle()
     val reminder by detailViewModel.reminder.collectAsStateWithLifecycle()
+
+
 
     val context = LocalContext.current
 
@@ -154,6 +155,7 @@ fun ReminderDetailScreen(id: Int, navigateBack: () -> Unit) {
                 // Date
                 Row(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
                     DateTimePicker(
+                        interval = reminderDetailState.interval,
                         onDateTimeSelected = { dateTime ->
                             Log.d("DateTimePicker", "Fecha y hora seleccionada: $dateTime")
                         }
@@ -233,7 +235,7 @@ fun ReminderDetailScreen(id: Int, navigateBack: () -> Unit) {
                             onClick = {
                             detailViewModel.onAction(ReminderDetailActions.UpdateReminder)
                         }) {
-                            Text(text = "Save")
+                            Text(text = "Update reminder")
                             Spacer(modifier = Modifier.width(4.dp))
                             Icon(
                                 imageVector = Icons.Default.Check,
