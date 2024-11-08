@@ -13,6 +13,7 @@ class UpsertReminder (
         title: String,
         interval: Interval,
         dateTime: LocalDateTime?,
+        active: Boolean
         //time: LocalTime?
     ): Boolean {
 
@@ -25,7 +26,8 @@ class UpsertReminder (
             title = title,
             interval = interval,
             dateTime = if (interval == Interval.ONCE) dateTime else null,
-            time = if (interval == Interval.DAILY) dateTime?.toLocalTime() else null
+            time = if (interval == Interval.DAILY) dateTime?.toLocalTime() else null,
+            active = active
         )
 
 

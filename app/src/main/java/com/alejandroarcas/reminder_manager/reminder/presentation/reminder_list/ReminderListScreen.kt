@@ -27,6 +27,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -37,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,7 +82,7 @@ fun ReminderListScreen(listViewModel: ListViewModel, addViewModel: AddViewModel,
 
     when (val state = uiState) {
         is ReminderListUiState.LOADING -> ListLoading()
-        is ReminderListUiState.SUCCESS -> ListSuccess(state.list, addViewModel, navigateToDetail)
+        is ReminderListUiState.SUCCESS -> ListSuccess(state.list, addViewModel, navigateToDetail, listViewModel)
         is ReminderListUiState.EMPTY -> ListEmpty(addViewModel)
     }
 }
@@ -123,7 +125,7 @@ fun ListEmpty(addViewModel: AddViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListSuccess(reminderList: List<Reminder>, addViewModel: AddViewModel, navigateToDetail: (Int) -> Unit) {
+fun ListSuccess(reminderList: List<Reminder>, addViewModel: AddViewModel, navigateToDetail: (Int) -> Unit, listViewModel: ListViewModel) {
 
     val listOfItemColors = listOf(Color(0xFF5fb995), Color(0xFF5fb8b9), Color(0xFF5f85b9))
 
@@ -157,7 +159,7 @@ fun ListSuccess(reminderList: List<Reminder>, addViewModel: AddViewModel, naviga
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 items(reminderList.size) {
-                    ReminderItem(reminderList[it], listOfItemColors.random(), navigateToDetail)
+                    ReminderItem(reminderList[it], listOfItemColors.random(), navigateToDetail, listViewModel)
                     Spacer(Modifier.height(10.dp))
                 }
             }
@@ -166,7 +168,9 @@ fun ListSuccess(reminderList: List<Reminder>, addViewModel: AddViewModel, naviga
 }
 
 @Composable
-fun ReminderItem(reminder: Reminder, randomColor: Color, navigateToDetail: (Int) -> Unit) {
+fun ReminderItem(reminder: Reminder, randomColor: Color, navigateToDetail: (Int) -> Unit, listViewModel: ListViewModel) {
+
+    val context = LocalContext.current
 
     val dateText = when (reminder.interval){
         Interval.ONCE -> {
@@ -187,7 +191,20 @@ fun ReminderItem(reminder: Reminder, randomColor: Color, navigateToDetail: (Int)
         verticalArrangement = Arrangement.SpaceEvenly,
     ) {
 
-        Text(reminder.title, fontSize = 24.sp, fontWeight = FontWeight.Medium)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Text(reminder.title, fontSize = 24.sp, fontWeight = FontWeight.Medium)
+            Switch(
+                checked = reminder.active,
+                onCheckedChange = {
+                    listViewModel.deactivateReminder(context, reminder.title)
+                }
+            )
+        }
         Row {
             Icon(Icons.Rounded.DateRange, contentDescription = "Date")
             Spacer(Modifier.width(5.dp))

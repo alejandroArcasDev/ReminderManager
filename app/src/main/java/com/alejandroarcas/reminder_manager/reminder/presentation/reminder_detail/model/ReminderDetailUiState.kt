@@ -10,5 +10,6 @@ data class ReminderDetailUiState(
     val isDateTimeEditing: Boolean = false,
     val isDropdownExpanded: Boolean = false,
     val isLoading: Boolean = true,
-    val isDeleted: Boolean = false
+    val isDeleted: Boolean = false,
+    val isActive: Boolean = false
 )

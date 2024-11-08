@@ -1,7 +1,9 @@
 package com.alejandroarcas.reminder_manager.reminder.presentation.reminder_detail
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkManager
 import com.alejandroarcas.reminder_manager.reminder.domain.model.Interval
 import com.alejandroarcas.reminder_manager.reminder.domain.model.Reminder
 import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_detail.model.ReminderDetailUiState
@@ -91,6 +93,7 @@ class ReminderDetailViewModel@Inject constructor(
                         title = reminderDetailState.value.title,
                         interval = reminderDetailState.value.interval,
                         dateTime = reminder.value!!.dateTime,
+                        active = reminder.value!!.active
                     )
                     _reminderSavedChannel.send(isUpdated)
 
@@ -112,7 +115,8 @@ class ReminderDetailViewModel@Inject constructor(
             it.copy(
                 title = reminder.title,
                 interval = reminder.interval,
-                isLoading = false
+                isLoading = false,
+                isActive = reminder.active
             )
         }
         _reminder.value = reminder
@@ -130,6 +134,7 @@ class ReminderDetailViewModel@Inject constructor(
             title = title,
             interval = interval,
             dateTime = dateTime,
+            active = reminder.value!!.active
         )
     }
 
@@ -156,6 +161,10 @@ class ReminderDetailViewModel@Inject constructor(
         _reminderDetailUiState.update {
             it.copy(isDropdownExpanded = !it.isDropdownExpanded)
         }
+    }
+
+    fun deactivateReminder(context: Context, title: String) {
+        WorkManager.getInstance(context).cancelUniqueWork(title)
     }
 
 

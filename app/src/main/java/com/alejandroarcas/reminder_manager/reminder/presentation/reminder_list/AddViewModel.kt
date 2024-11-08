@@ -50,7 +50,13 @@ class AddViewModel @Inject constructor(
 
     fun addReminder(context: Context, title: String, interval: Interval, dateTime: LocalDateTime) {
         viewModelScope.launch {
-            val added = addReminderUseCase(id = 0, title = title, interval = interval, dateTime)
+            val added = addReminderUseCase(
+                id = 0,
+                title = title,
+                interval = interval,
+                dateTime = dateTime,
+                active = true
+            )
             _reminderAddedChannel.send(added)
             if (interval == Interval.ONCE) {
                 scheduleOneTimeReminder(context, title, dateTime)

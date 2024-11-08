@@ -13,5 +13,6 @@ data class ReminderEntity(
     val title: String,
     val interval: Interval,
     val dateTime: LocalDateTime?,  // If Interval.ONCE
-    val time: LocalTime? // If Interval.DAILY
+    val time: LocalTime?, // If Interval.DAILY
+    val active: Boolean
 )

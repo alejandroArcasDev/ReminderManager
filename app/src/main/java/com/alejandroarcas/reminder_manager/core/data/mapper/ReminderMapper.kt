@@ -9,7 +9,8 @@ fun ReminderEntity.toReminder(): Reminder {
         title = this.title,
         interval = this.interval,
         dateTime = this.dateTime,
-        time = this.time
+        time = this.time,
+        active = this.active
     )
 }
 
@@ -19,6 +20,7 @@ fun Reminder.toReminderEntity(): ReminderEntity {
         title = this.title,
         interval = this.interval,
         dateTime = this.dateTime,
-        time = this.time
+        time = this.time,
+        active = this.active
     )
 }
