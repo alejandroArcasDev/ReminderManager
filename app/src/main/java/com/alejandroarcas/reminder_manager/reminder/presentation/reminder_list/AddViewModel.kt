@@ -15,6 +15,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.alejandroarcas.reminder_manager.reminder.domain.model.Interval
+import com.alejandroarcas.reminder_manager.reminder.domain.model.Reminder
 import com.alejandroarcas.reminder_manager.reminder.use_cases.UpsertReminder
 import com.alejandroarcas.reminder_manager.reminder.worker.ReminderWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,11 +52,14 @@ class AddViewModel @Inject constructor(
     fun addReminder(context: Context, title: String, interval: Interval, dateTime: LocalDateTime) {
         viewModelScope.launch {
             val added = addReminderUseCase(
-                id = 0,
-                title = title,
-                interval = interval,
-                dateTime = dateTime,
-                active = true
+                Reminder(
+                    id = 0,
+                    title = title,
+                    interval = interval,
+                    dateTime = dateTime,
+                    time = null,
+                    active = true
+                )
             )
             _reminderAddedChannel.send(added)
             if (interval == Interval.ONCE) {

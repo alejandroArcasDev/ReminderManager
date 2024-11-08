@@ -53,14 +53,19 @@ import kotlinx.coroutines.flow.collectLatest
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun ReminderListScreen(listViewModel: ListViewModel, addViewModel: AddViewModel, detailViewModel: ReminderDetailViewModel, navigateToDetail: (Int) -> Unit) {
+fun ReminderListScreen(
+    listViewModel: ListViewModel,
+    addViewModel: AddViewModel,
+    detailViewModel: ReminderDetailViewModel,
+    navigateToDetail: (Int) -> Unit
+) {
 
     val uiState by listViewModel.uiState.collectAsStateWithLifecycle()
 
     val showBottomSheet by addViewModel.showBottomSheet.collectAsStateWithLifecycle()
 
 
-    if (showBottomSheet){
+    if (showBottomSheet) {
         AddReminderBottomSheet(addViewModel)
     }
 
@@ -80,9 +85,9 @@ fun ReminderListScreen(listViewModel: ListViewModel, addViewModel: AddViewModel,
         }
     }
 
-    when (val state = uiState) {
+    when (uiState) {
         is ReminderListUiState.LOADING -> ListLoading()
-        is ReminderListUiState.SUCCESS -> ListSuccess(state.list, addViewModel, navigateToDetail, listViewModel)
+        is ReminderListUiState.SUCCESS -> ListSuccess(addViewModel, navigateToDetail, listViewModel)
         is ReminderListUiState.EMPTY -> ListEmpty(addViewModel)
     }
 }
@@ -125,9 +130,15 @@ fun ListEmpty(addViewModel: AddViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListSuccess(reminderList: List<Reminder>, addViewModel: AddViewModel, navigateToDetail: (Int) -> Unit, listViewModel: ListViewModel) {
+fun ListSuccess(
+    addViewModel: AddViewModel,
+    navigateToDetail: (Int) -> Unit,
+    listViewModel: ListViewModel
+) {
 
     val listOfItemColors = listOf(Color(0xFF5fb995), Color(0xFF5fb8b9), Color(0xFF5f85b9))
+
+    val reminderList by listViewModel.remindersList.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -159,7 +170,15 @@ fun ListSuccess(reminderList: List<Reminder>, addViewModel: AddViewModel, naviga
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 items(reminderList.size) {
-                    ReminderItem(reminderList[it], listOfItemColors.random(), navigateToDetail, listViewModel)
+                    val color = listOfItemColors[it % listOfItemColors.size]
+
+                    ReminderItem(
+                        reminderList[it],
+                        color,
+                        navigateToDetail,
+                        listViewModel,
+                        addViewModel
+                    )
                     Spacer(Modifier.height(10.dp))
                 }
             }
@@ -168,11 +187,17 @@ fun ListSuccess(reminderList: List<Reminder>, addViewModel: AddViewModel, naviga
 }
 
 @Composable
-fun ReminderItem(reminder: Reminder, randomColor: Color, navigateToDetail: (Int) -> Unit, listViewModel: ListViewModel) {
+fun ReminderItem(
+    reminder: Reminder,
+    randomColor: Color,
+    navigateToDetail: (Int) -> Unit,
+    listViewModel: ListViewModel,
+    addViewModel: AddViewModel
+) {
 
     val context = LocalContext.current
 
-    val dateText = when (reminder.interval){
+    val dateText = when (reminder.interval) {
         Interval.ONCE -> {
             reminder.dateTime!!.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
         }
@@ -196,12 +221,33 @@ fun ReminderItem(reminder: Reminder, randomColor: Color, navigateToDetail: (Int)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
             Text(reminder.title, fontSize = 24.sp, fontWeight = FontWeight.Medium)
             Switch(
                 checked = reminder.active,
                 onCheckedChange = {
-                    listViewModel.deactivateReminder(context, reminder.title)
+                    listViewModel.changeReminderStatus(reminder)
+                    if (reminder.active) {
+                        listViewModel.deactivateReminder(context, reminder.title)
+                    } else {
+                        when (reminder.interval) {
+                            Interval.ONCE -> {
+                                addViewModel.scheduleOneTimeReminder(
+                                    context,
+                                    reminder.title,
+                                    reminder.dateTime!!
+                                )
+                            }
+
+                            Interval.DAILY -> {
+                                addViewModel.scheduleDailyReminder(
+                                    context,
+                                    reminder.title,
+                                    reminder.time!!
+                                )
+                            }
+                        }
+                    }
                 }
             )
         }
@@ -215,7 +261,7 @@ fun ReminderItem(reminder: Reminder, randomColor: Color, navigateToDetail: (Int)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
             Text(reminder.interval.toPresentation())
             Row(
                 Modifier.clickable {

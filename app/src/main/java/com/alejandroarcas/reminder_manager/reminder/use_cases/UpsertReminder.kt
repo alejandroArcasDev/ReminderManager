@@ -9,29 +9,24 @@ class UpsertReminder (
     private val reminderRepository: ReminderRepository
 ) {
     suspend operator fun invoke(
-        id: Int? = 0,
-        title: String,
-        interval: Interval,
-        dateTime: LocalDateTime?,
-        active: Boolean
-        //time: LocalTime?
+        reminder: Reminder
     ): Boolean {
 
-        if (title.isEmpty()) {
+        if (reminder.title.isEmpty()) {
             return false
         }
 
-        val reminder = Reminder(
-            id = id?: 0,
-            title = title,
-            interval = interval,
-            dateTime = if (interval == Interval.ONCE) dateTime else null,
-            time = if (interval == Interval.DAILY) dateTime?.toLocalTime() else null,
-            active = active
+        val newReminder = Reminder(
+            id = reminder.id?: 0,
+            title = reminder.title,
+            interval = reminder.interval,
+            dateTime = if (reminder.interval == Interval.ONCE) reminder.dateTime else null,
+            time = if (reminder.interval == Interval.DAILY) reminder.dateTime?.toLocalTime() else null,
+            active = reminder.active
         )
 
 
-        reminderRepository.upsertReminder(reminder)
+        reminderRepository.upsertReminder(newReminder)
         return true
 
     }

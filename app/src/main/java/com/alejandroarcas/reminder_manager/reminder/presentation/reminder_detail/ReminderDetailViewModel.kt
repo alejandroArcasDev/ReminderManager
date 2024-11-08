@@ -22,7 +22,7 @@ import java.time.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
-class ReminderDetailViewModel@Inject constructor(
+class ReminderDetailViewModel @Inject constructor(
     private val getReminder: GetReminder,
     private val deleteReminder: DeleteReminder,
     private val upsertReminder: UpsertReminder
@@ -75,8 +75,10 @@ class ReminderDetailViewModel@Inject constructor(
 
             is ReminderDetailActions.UpdateDateTime -> {
                 _reminder.value?.let {
-                    _reminder.value = it.copy(dateTime = action.dateTime,
-                        time = action.dateTime.toLocalTime())
+                    _reminder.value = it.copy(
+                        dateTime = action.dateTime,
+                        time = action.dateTime.toLocalTime()
+                    )
                 }
                 _reminderDetailUiState.update {
                     it.copy(isDateTimeEditing = true)
@@ -88,13 +90,7 @@ class ReminderDetailViewModel@Inject constructor(
                     it.copy(isLoading = true)
                 }
                 viewModelScope.launch {
-                    val isUpdated = upsertReminder(
-                        id = reminder.value!!.id,
-                        title = reminderDetailState.value.title,
-                        interval = reminderDetailState.value.interval,
-                        dateTime = reminder.value!!.dateTime,
-                        active = reminder.value!!.active
-                    )
+                    val isUpdated = upsertReminder(reminder.value!!)
                     _reminderSavedChannel.send(isUpdated)
 
                 }
@@ -122,13 +118,18 @@ class ReminderDetailViewModel@Inject constructor(
         _reminder.value = reminder
     }
 
+    /*
     /**
      * Updates or inserts a reminder with the given title and interval.
      * @param title The title of the reminder.
      * @param interval The interval of the reminder.
      * @return True if the reminder was updated or inserted, false otherwise.
      */
-    suspend fun upsertReminder(title: String, interval: Interval, dateTime: LocalDateTime?): Boolean {
+    suspend fun upsertReminder(
+        title: String,
+        interval: Interval,
+        dateTime: LocalDateTime?
+    ): Boolean {
         return upsertReminder.invoke(
             id = reminder.value!!.id,
             title = title,
@@ -136,7 +137,7 @@ class ReminderDetailViewModel@Inject constructor(
             dateTime = dateTime,
             active = reminder.value!!.active
         )
-    }
+    }*/
 
     /**
      * Deletes the given reminder.
@@ -147,9 +148,9 @@ class ReminderDetailViewModel@Inject constructor(
     }
 
 
-    fun enableEdit(field: String){
+    fun enableEdit(field: String) {
         _reminderDetailUiState.update {
-            when(field){
+            when (field) {
                 "title" -> it.copy(isTitleEditing = !it.isTitleEditing)
                 "interval" -> it.copy(isIntervalEditing = !it.isIntervalEditing)
                 else -> it
@@ -157,7 +158,7 @@ class ReminderDetailViewModel@Inject constructor(
         }
     }
 
-    fun toggleDropdown(){
+    fun toggleDropdown() {
         _reminderDetailUiState.update {
             it.copy(isDropdownExpanded = !it.isDropdownExpanded)
         }
@@ -166,6 +167,4 @@ class ReminderDetailViewModel@Inject constructor(
     fun deactivateReminder(context: Context, title: String) {
         WorkManager.getInstance(context).cancelUniqueWork(title)
     }
-
-
 }
