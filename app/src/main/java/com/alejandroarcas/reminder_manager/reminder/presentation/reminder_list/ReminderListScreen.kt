@@ -223,6 +223,7 @@ fun ReminderItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(reminder.title, fontSize = 24.sp, fontWeight = FontWeight.Medium)
+            // Switch to enable and disable reminder
             Switch(
                 checked = reminder.active,
                 onCheckedChange = {
