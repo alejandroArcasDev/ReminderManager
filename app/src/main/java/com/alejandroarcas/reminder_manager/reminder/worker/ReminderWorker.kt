@@ -16,7 +16,7 @@ import androidx.work.workDataOf
 import com.alejandroarcas.ReminderManager.R
 import kotlinx.coroutines.delay
 
-class OnceWorker(
+class ReminderWorker(
     context: Context,
     workerParams: WorkerParameters
 ): CoroutineWorker(context, workerParams) {
@@ -29,8 +29,7 @@ class OnceWorker(
 
             //showNotification(title)
 
-
-            Log.i("OnceWorker", "Working...")
+            Log.i("ReminderWorker", "Working...")
 
             delay(100000)
 
@@ -41,7 +40,7 @@ class OnceWorker(
                 "error_code" to 1,
                 "error_message" to e.message)
 
-            Log.e("OnceWorker", e.message ?: "Error")
+            Log.e("ReminderWorker", e.message ?: "Error")
              Result.failure(outputData)
         }
     }
@@ -64,7 +63,7 @@ class OnceWorker(
         val notificationManager =
             applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val channelId = "reminder_once_channel"
+        val channelId = "reminder_channel"
         val channelName = "Reminder Notifications"
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -87,7 +86,7 @@ class OnceWorker(
             .setAutoCancel(true)
             .build()
 
-        Log.d("OnceWorker", "Notification created")
+        Log.d("ReminderWorker", "Notification created")
 
         return notification
     }

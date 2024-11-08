@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,6 +46,8 @@ fun AddReminderBottomSheet(addViewModel: AddViewModel) {
     val onceChip by addViewModel.onceChip.collectAsStateWithLifecycle()
     val dailyChip by addViewModel.dailyChip.collectAsStateWithLifecycle()
     val dateTime by addViewModel.dateTime.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
 
     ModalBottomSheet(
         sheetState = sheetState,
@@ -146,7 +149,7 @@ fun AddReminderBottomSheet(addViewModel: AddViewModel) {
                     containerColor = Color(0xFF5f85b9)
                 ),
                 onClick = {
-                    addViewModel.addReminder(title, addViewModel.chipValueToUseCase(), dateTime)
+                    addViewModel.addReminder(context, title, addViewModel.chipValueToUseCase(), dateTime)
                     addViewModel.showBottomSheet(false)
                 }
             ) { Text("Add reminder", color = Color.White, fontSize = 16.sp) }

@@ -1,18 +1,32 @@
 package com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list
 
+import android.content.Context
+import android.util.Log
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.BackoffPolicy
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.alejandroarcas.reminder_manager.reminder.domain.model.Interval
 import com.alejandroarcas.reminder_manager.reminder.use_cases.UpsertReminder
+import com.alejandroarcas.reminder_manager.reminder.worker.ReminderWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
+import java.time.Duration
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,10 +48,19 @@ class AddViewModel @Inject constructor(
         _showBottomSheet.value = value
     }
 
-    fun addReminder(title: String, interval: Interval, dateTime: LocalDateTime) {
+    fun addReminder(context: Context, title: String, interval: Interval, dateTime: LocalDateTime) {
         viewModelScope.launch {
             val added = addReminderUseCase(id = 0, title = title, interval = interval, dateTime)
             _reminderAddedChannel.send(added)
+            if (interval == Interval.ONCE) {
+                scheduleOneTimeReminder(context, title, dateTime)
+            } else {
+                scheduleDailyReminder(
+                    context,
+                    title,
+                    dateTime.toLocalTime()
+                )
+            }
         }
     }
 
@@ -78,6 +101,65 @@ class AddViewModel @Inject constructor(
 
     fun setDate(dateTime: LocalDateTime) {
         _dateTime.value = dateTime
+    }
+
+    fun scheduleOneTimeReminder(context: Context, title: String, dateTime: LocalDateTime) {
+        val delay = Duration.between(LocalDateTime.now(), dateTime).seconds
+
+        val data = workDataOf("title" to title)
+
+        val workRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
+            .setInitialDelay(delay, TimeUnit.SECONDS)
+            .setBackoffCriteria(
+                backoffPolicy = BackoffPolicy.LINEAR,
+                duration = Duration.ofSeconds(10),
+            )
+            .setInputData(data)
+            .build()
+
+        val workManager = WorkManager.getInstance(context)
+
+        workManager.enqueueUniqueWork(
+            title,
+            ExistingWorkPolicy.REPLACE,
+            workRequest
+        )
+    }
+
+    fun scheduleDailyReminder(
+        context: Context,
+        title: String,
+        time: LocalTime
+    ) {
+        val now = LocalTime.now()
+
+        // Calcular el retraso hasta la próxima ocurrencia de esa hora
+        val delay = if (time.isAfter(now)) {
+            Duration.between(now, time).seconds
+        } else {
+            Duration.between(now, time.plusHours(24)).seconds
+        }
+
+        val data = workDataOf("title" to title)
+
+        val workRequest = PeriodicWorkRequestBuilder<ReminderWorker>(1, TimeUnit.MINUTES)
+            .setInitialDelay(delay, TimeUnit.SECONDS)
+            .setBackoffCriteria(
+                backoffPolicy = BackoffPolicy.LINEAR,
+                duration = Duration.ofSeconds(10),
+            )
+            .setInputData(data)
+            //.setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
+
+        val workManager = WorkManager.getInstance(context)
+
+        workManager.enqueueUniquePeriodicWork(
+            title,
+            ExistingPeriodicWorkPolicy.UPDATE,
+            workRequest
+        )
+
     }
 
 }
