@@ -7,7 +7,9 @@ fun ReminderEntity.toReminder(): Reminder {
     return Reminder(
         id = this.id,
         title = this.title,
-        interval = this.interval
+        interval = this.interval,
+        dateTime = this.dateTime,
+        time = this.time
     )
 }
 
@@ -15,6 +17,8 @@ fun Reminder.toReminderEntity(): ReminderEntity {
     return ReminderEntity(
         id = this.id,
         title = this.title,
-        interval = this.interval
+        interval = this.interval,
+        dateTime = this.dateTime,
+        time = this.time
     )
 }

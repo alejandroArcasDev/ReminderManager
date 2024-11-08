@@ -1,5 +1,6 @@
 package com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.components
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,18 +29,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alejandroarcas.reminder_manager.reminder.domain.model.Interval
+import com.alejandroarcas.reminder_manager.reminder.presentation.components.DateTimePicker
 import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.AddViewModel
-import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.ListViewModel
+import java.time.LocalDateTime
+import java.time.LocalTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddReminderBottomSheet(addViewModel: AddViewModel, listViewModel: ListViewModel) {
+fun AddReminderBottomSheet(addViewModel: AddViewModel) {
     val title by addViewModel.title.collectAsStateWithLifecycle()
 
     val sheetState = rememberModalBottomSheetState()
 
     val onceChip by addViewModel.onceChip.collectAsStateWithLifecycle()
     val dailyChip by addViewModel.dailyChip.collectAsStateWithLifecycle()
+    val dateTime by addViewModel.dateTime.collectAsStateWithLifecycle()
 
     ModalBottomSheet(
         sheetState = sheetState,
@@ -118,6 +123,19 @@ fun AddReminderBottomSheet(addViewModel: AddViewModel, listViewModel: ListViewMo
             }
             Spacer(Modifier.height(25.dp))
 
+            // Date
+            Row(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+                DateTimePicker(
+                    interval = if(onceChip) Interval.ONCE else Interval.DAILY,
+                    dateTime = if(onceChip) LocalDateTime.now() else null,
+                    time =  if(dailyChip) dateTime.toLocalTime()?: LocalTime.now() else null,
+                    onDateTimeSelected = { dateTimePicked ->
+                        Log.d("DateTimePicker", "Fecha y hora seleccionada: $dateTimePicked")
+                        addViewModel.setDate(dateTimePicked)
+                    }
+                )
+            }
+
             Button(
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
@@ -128,7 +146,7 @@ fun AddReminderBottomSheet(addViewModel: AddViewModel, listViewModel: ListViewMo
                     containerColor = Color(0xFF5f85b9)
                 ),
                 onClick = {
-                    addViewModel.addReminder(title, addViewModel.chipValueToUseCase())
+                    addViewModel.addReminder(title, addViewModel.chipValueToUseCase(), dateTime)
                     addViewModel.showBottomSheet(false)
                 }
             ) { Text("Add reminder", color = Color.White, fontSize = 16.sp) }

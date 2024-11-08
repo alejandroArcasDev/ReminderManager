@@ -42,12 +42,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alejandroarcas.reminder_manager.reminder.domain.mapper.toPresentation
+import com.alejandroarcas.reminder_manager.reminder.domain.model.Interval
 import com.alejandroarcas.reminder_manager.reminder.domain.model.Reminder
-import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_detail.ReminderDetailActions
 import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_detail.ReminderDetailViewModel
 import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.components.AddReminderBottomSheet
 import com.alejandroarcas.reminder_manager.reminder.presentation.reminder_list.model.ReminderListUiState
 import kotlinx.coroutines.flow.collectLatest
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ReminderListScreen(listViewModel: ListViewModel, addViewModel: AddViewModel, detailViewModel: ReminderDetailViewModel, navigateToDetail: (Int) -> Unit) {
@@ -58,7 +59,7 @@ fun ReminderListScreen(listViewModel: ListViewModel, addViewModel: AddViewModel,
 
 
     if (showBottomSheet){
-        AddReminderBottomSheet(addViewModel, listViewModel)
+        AddReminderBottomSheet(addViewModel)
     }
 
     LaunchedEffect(true) {
@@ -80,13 +81,33 @@ fun ReminderListScreen(listViewModel: ListViewModel, addViewModel: AddViewModel,
     when (val state = uiState) {
         is ReminderListUiState.LOADING -> ListLoading()
         is ReminderListUiState.SUCCESS -> ListSuccess(state.list, addViewModel, navigateToDetail)
-        is ReminderListUiState.EMPTY -> ListEmpty()
+        is ReminderListUiState.EMPTY -> ListEmpty(addViewModel)
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListEmpty() {
-    Scaffold { innerPadding ->
+fun ListEmpty(addViewModel: AddViewModel) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("My Reminders") },
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    addViewModel.showBottomSheet(true)
+                    addViewModel.resetBottomSheetValues()
+                },
+                shape = CircleShape,
+                modifier = Modifier.size(80.dp),
+                elevation = FloatingActionButtonDefaults.elevation(1.dp)
+            ) {
+                Icon(Icons.Rounded.Add, contentDescription = "Add", modifier = Modifier.size(35.dp))
+            }
+        }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -98,7 +119,6 @@ fun ListEmpty() {
             Text("No reminders yet")
         }
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -147,6 +167,17 @@ fun ListSuccess(reminderList: List<Reminder>, addViewModel: AddViewModel, naviga
 
 @Composable
 fun ReminderItem(reminder: Reminder, randomColor: Color, navigateToDetail: (Int) -> Unit) {
+
+    val dateText = when (reminder.interval){
+        Interval.ONCE -> {
+            reminder.dateTime!!.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+        }
+
+        Interval.DAILY -> {
+            reminder.time
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth(0.96f)
@@ -160,7 +191,7 @@ fun ReminderItem(reminder: Reminder, randomColor: Color, navigateToDetail: (Int)
         Row {
             Icon(Icons.Rounded.DateRange, contentDescription = "Date")
             Spacer(Modifier.width(5.dp))
-            Text("21/11/2024    2:30 pm")
+            Text(dateText.toString())
         }
         Row(
             modifier = Modifier

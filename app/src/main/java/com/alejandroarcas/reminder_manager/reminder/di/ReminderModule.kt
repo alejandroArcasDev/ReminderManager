@@ -28,7 +28,9 @@ object ReminderModule {
             application,
             ReminderDB::class.java,
             "reminder_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     // Reminder Repository

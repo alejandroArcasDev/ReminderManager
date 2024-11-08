@@ -18,16 +18,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.alejandroarcas.reminder_manager.reminder.domain.model.Interval
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun DateTimePicker(
     interval: Interval,
-    initialDateTime: LocalDateTime = LocalDateTime.now(),
+    dateTime: LocalDateTime? = null,
+    time: LocalTime? = null,
     onDateTimeSelected: (LocalDateTime) -> Unit
 ) {
-    var selectedDateTime by remember { mutableStateOf(initialDateTime) }
+
+    println("TIME EN DATE PICKER: $time")
+
+    var selectedDateTime by remember {
+        mutableStateOf(dateTime ?: LocalDateTime.now())
+    }
+    var selectedTime by remember {
+        mutableStateOf(time ?: LocalTime.now())
+    }
     val context = LocalContext.current
 
     // Controlar la visibilidad de los diálogos
@@ -45,7 +56,7 @@ fun DateTimePicker(
         val formattedDateTime = if (interval == Interval.ONCE) {
             selectedDateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
         } else {
-            selectedDateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+            time!!.format(DateTimeFormatter.ofPattern("HH:mm"))
         }
 
         Text(text = formattedDateTime)
@@ -72,11 +83,17 @@ fun DateTimePicker(
             context,
             { _, hourOfDay, minute ->
                 selectedDateTime = selectedDateTime.withHour(hourOfDay).withMinute(minute)
+                selectedTime = LocalTime.of(hourOfDay, minute)
                 showTimePicker = false
-                onDateTimeSelected(selectedDateTime) // Llama al callback con la fecha y hora final seleccionada
+
+                // Si es DAILY, solo enviamos la hora seleccionada como parte del LocalDateTime de hoy
+                onDateTimeSelected(
+                    if (interval == Interval.ONCE) selectedDateTime
+                    else LocalDateTime.of(LocalDate.now(), selectedTime)
+                )
             },
-            selectedDateTime.hour,
-            selectedDateTime.minute,
+            selectedTime.hour,
+            selectedTime.minute,
             true
         ).show()
     }

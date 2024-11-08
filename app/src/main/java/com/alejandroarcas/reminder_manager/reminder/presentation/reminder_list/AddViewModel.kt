@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,13 +26,17 @@ class AddViewModel @Inject constructor(
     private val _reminderAddedChannel = Channel<Boolean>()
     val reminderAddedChannel = _reminderAddedChannel.receiveAsFlow()
 
+
+    private val _dateTime = MutableStateFlow(LocalDateTime.now())
+    val dateTime = _dateTime.asStateFlow()
+
     fun showBottomSheet(value: Boolean) {
         _showBottomSheet.value = value
     }
 
-    fun addReminder(title: String, interval: Interval) {
+    fun addReminder(title: String, interval: Interval, dateTime: LocalDateTime) {
         viewModelScope.launch {
-            val added = addReminderUseCase(id = 0, title = title, interval = interval)
+            val added = addReminderUseCase(id = 0, title = title, interval = interval, dateTime)
             _reminderAddedChannel.send(added)
         }
     }
@@ -67,6 +73,11 @@ class AddViewModel @Inject constructor(
         _title.value = ""
         _onceChip.value = true
         _dailyChip.value = false
+        _dateTime.value = LocalDateTime.now()
+    }
+
+    fun setDate(dateTime: LocalDateTime) {
+        _dateTime.value = dateTime
     }
 
 }

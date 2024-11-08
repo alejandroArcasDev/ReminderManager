@@ -44,11 +44,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alejandroarcas.reminder_manager.reminder.domain.mapper.toPresentation
 import com.alejandroarcas.reminder_manager.reminder.domain.model.Interval
 import com.alejandroarcas.reminder_manager.reminder.presentation.components.CustomTopAppBar
 import com.alejandroarcas.reminder_manager.reminder.presentation.components.DateTimePicker
 import kotlinx.coroutines.flow.collectLatest
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +56,7 @@ fun ReminderDetailScreen(id: Int, detailViewModel: ReminderDetailViewModel, navi
 
     val reminderDetailState by detailViewModel.reminderDetailState.collectAsStateWithLifecycle()
     val reminder by detailViewModel.reminder.collectAsStateWithLifecycle()
+
 
     val context = LocalContext.current
 
@@ -82,8 +83,16 @@ fun ReminderDetailScreen(id: Int, detailViewModel: ReminderDetailViewModel, navi
         }
     }
 
+
+
+
     Scaffold(topBar = {
-        CustomTopAppBar(title = "Reminder Detail", navigateBack = navigateBack)
+        CustomTopAppBar(title = "Reminder Detail", navigateBack = navigateBack,
+            action = {
+                detailViewModel.onAction(ReminderDetailActions.DeleteReminder(reminder!!))
+                navigateBack()
+            }
+        )
     }
     ) { innerPadding ->
         Column(
@@ -151,8 +160,11 @@ fun ReminderDetailScreen(id: Int, detailViewModel: ReminderDetailViewModel, navi
                 Row(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
                     DateTimePicker(
                         interval = reminderDetailState.interval,
+                        dateTime = if (reminderDetailState.interval == Interval.ONCE) reminder!!.dateTime else null,
+                        time = if (reminderDetailState.interval == Interval.DAILY) reminder!!.time else null,
                         onDateTimeSelected = { dateTime ->
                             Log.d("DateTimePicker", "Fecha y hora seleccionada: $dateTime")
+                            detailViewModel.onAction(ReminderDetailActions.UpdateDateTime(dateTime))
                         }
                     )
                 }
@@ -163,8 +175,7 @@ fun ReminderDetailScreen(id: Int, detailViewModel: ReminderDetailViewModel, navi
                         expanded = reminderDetailState.isDropdownExpanded,
                         onExpandedChange = { detailViewModel.toggleDropdown() }) {
                         OutlinedTextField(
-                            value = reminderDetailState.interval.toString().lowercase()
-                                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString() },
+                            value = reminderDetailState.interval.toPresentation(),
                             onValueChange = {},
                             readOnly = true,
                             trailingIcon = {
@@ -224,7 +235,7 @@ fun ReminderDetailScreen(id: Int, detailViewModel: ReminderDetailViewModel, navi
                     modifier = Modifier.fillMaxWidth().padding(4.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    if (reminderDetailState.title != reminder!!.title || reminderDetailState.interval != reminder!!.interval) {
+                    if (reminderDetailState.title != reminder!!.title || reminderDetailState.interval != reminder!!.interval || reminderDetailState.isDateTimeEditing) {
                         Button(
                             modifier = Modifier.fillMaxWidth(0.70f),
                             onClick = {
@@ -238,29 +249,6 @@ fun ReminderDetailScreen(id: Int, detailViewModel: ReminderDetailViewModel, navi
                             )
 
                         }
-                    }
-                }
-                // Delete button
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(4.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Button(
-                        modifier = Modifier.fillMaxWidth(0.70f),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                        onClick = {
-                            detailViewModel.onAction(
-                                ReminderDetailActions.DeleteReminder(reminder!!)
-                            )
-                            navigateBack()
-                        }) {
-                        Text(text = "Delete", color = Color.White)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Back",
-                            tint = Color.White
-                        )
                     }
                 }
             }

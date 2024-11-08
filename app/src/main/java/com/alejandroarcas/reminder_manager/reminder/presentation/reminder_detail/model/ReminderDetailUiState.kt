@@ -7,6 +7,7 @@ data class ReminderDetailUiState(
     val interval: Interval = Interval.ONCE,
     val isIntervalEditing: Boolean = false,
     val isTitleEditing: Boolean = false,
+    val isDateTimeEditing: Boolean = false,
     val isDropdownExpanded: Boolean = false,
     val isLoading: Boolean = true,
     val isDeleted: Boolean = false

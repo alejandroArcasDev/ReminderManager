@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -69,6 +71,16 @@ class ReminderDetailViewModel@Inject constructor(
 
             }
 
+            is ReminderDetailActions.UpdateDateTime -> {
+                _reminder.value?.let {
+                    _reminder.value = it.copy(dateTime = action.dateTime,
+                        time = action.dateTime.toLocalTime())
+                }
+                _reminderDetailUiState.update {
+                    it.copy(isDateTimeEditing = true)
+                }
+            }
+
             is ReminderDetailActions.UpdateReminder -> {
                 _reminderDetailUiState.update {
                     it.copy(isLoading = true)
@@ -77,7 +89,8 @@ class ReminderDetailViewModel@Inject constructor(
                     val isUpdated = upsertReminder(
                         id = reminder.value!!.id,
                         title = reminderDetailState.value.title,
-                        interval = reminderDetailState.value.interval
+                        interval = reminderDetailState.value.interval,
+                        dateTime = reminder.value!!.dateTime,
                     )
                     _reminderSavedChannel.send(isUpdated)
 
@@ -111,11 +124,12 @@ class ReminderDetailViewModel@Inject constructor(
      * @param interval The interval of the reminder.
      * @return True if the reminder was updated or inserted, false otherwise.
      */
-    suspend fun upsertReminder(title: String, interval: Interval): Boolean {
+    suspend fun upsertReminder(title: String, interval: Interval, dateTime: LocalDateTime?): Boolean {
         return upsertReminder.invoke(
             id = reminder.value!!.id,
             title = title,
-            interval = interval
+            interval = interval,
+            dateTime = dateTime,
         )
     }
 
